@@ -1,15 +1,23 @@
 package com.wso2.build.plugin;
 
+import com.wso2.build.beans.Parameters;
 import com.wso2.build.interfaces.containers.RuleContainer;
 import com.wso2.build.interfaces.rules.ProjectRule;
+import com.wso2.build.registry.GRegDependencyClient;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Profile;
+import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+
+import java.util.Map;
+import java.util.Properties;
 
 
 /**
@@ -18,10 +26,11 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
  */
 public class RuleExtenderMojo extends AbstractMojo {
 
+
     private RuleContainer ruleContainer = null;
 
     /**
-     * The project currently being build.
+     * The mavenProject currently being build.
      *
      * @parameter expression="${project}"
      * @required
@@ -39,18 +48,36 @@ public class RuleExtenderMojo extends AbstractMojo {
     private MavenSession mavenSession = null;
 
     /**
-     * The current Maven session.
+     * The settings.xml file in .m2.
      *
-     * @parameter expression="${hint}"
+     * @parameter expression="${settings}"
      * @required
-     *
      */
+    private Settings settings = null;
+
+
+    @Parameter(required = true)
     private String hint;
 
+    @Parameter(required = true)
+    private String gregHome;
+
+
+    private static final String dependencyProfile = "dependency";
+    private static final String registryHomeProperty = "greg.home";
+    private static final String moduleEndpointProperty = "greg.module.endpoint";
+    private static final String dependencyEndpointProperty = "greg.dependency.endpoint";
+    private static final String artifactEndpointProperty = "greg.artifact.endpoint";
+    private static final String lifecycleEndpointProperty = "greg.lifecycle.endpoint";
+    private static final String userNameProperty = "greg.username";
+    private static final String passwordProperty = "greg.password";
+    private static final String trustStorePassword = "trust.store.password";
 
     @Override
     public void execute() throws MojoExecutionException {
         System.out.println("RuleExtenderMojo execute start");
+
+        buildArtifacts();
 
         try
         {
@@ -63,15 +90,18 @@ public class RuleExtenderMojo extends AbstractMojo {
 
             System.out.println("hint : " + hint);
 
+            //System.out.println("gregHome path : " + gregHome);
+
+            //System.out.println("componentParameters size : " + configurations.get(homeObject));
+
+
 
             if (false == executeRule()) {
                 throw new MojoExecutionException("Rule failed");
             }
 
-
-
-
             container.dispose();
+
         }
         catch (PlexusContainerException e){
             e.printStackTrace();
@@ -81,13 +111,39 @@ public class RuleExtenderMojo extends AbstractMojo {
         }
     }
 
+
+    public boolean buildArtifacts() {
+        Map<String, Profile> profileMap = settings.getProfilesAsMap();
+
+        Profile profile = profileMap.get(dependencyProfile);
+
+        Properties properties = profile.getProperties();
+
+        Parameters parameters = new Parameters();
+
+        parameters.setGregHome(properties.getProperty(registryHomeProperty));
+        parameters.setGregModuleEndpoint(properties.getProperty(moduleEndpointProperty));
+        parameters.setGregDependencyEndpoint(properties.getProperty(dependencyEndpointProperty));
+        parameters.setGregArtifactEndpoint(properties.getProperty(artifactEndpointProperty));
+        parameters.setGregLifecycleEndpoint(properties.getProperty(lifecycleEndpointProperty));
+        parameters.setGregUsername(properties.getProperty(userNameProperty));
+        parameters.setGregPassword(properties.getProperty(passwordProperty));
+        parameters.setTrustStorePassword(properties.getProperty(trustStorePassword));
+
+        System.out.println("getGregHome : " + parameters.getGregHome());
+
+        GRegDependencyClient client = new GRegDependencyClient(parameters);
+
+        return client.checkDependecies();
+    }
+
+
     private boolean executeRule() {
         ProjectRule projectRule = ruleContainer.getProjectRule(hint);
 
         if (null != projectRule) {
-            return projectRule.validate(mavenProject, mavenSession);
+            return projectRule.validate(mavenProject, mavenSession, settings);
         }
-
 
         return false;
     }

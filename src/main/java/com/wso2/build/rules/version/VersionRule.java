@@ -1,8 +1,9 @@
-package com.wso2.build.rules;
+package com.wso2.build.rules.version;
 
 import com.wso2.build.interfaces.rules.ProjectRule;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.component.annotations.Component;
 import java.util.StringTokenizer;
 
@@ -16,7 +17,7 @@ import java.util.StringTokenizer;
 public class VersionRule implements ProjectRule {
 
     @Override
-    public boolean validate(MavenProject mvnProject, MavenSession mvnSession) {
+    public boolean validate(MavenProject mvnProject, MavenSession mvnSession, Settings settings) {
         String version = mvnProject.getVersion();
 
         StringTokenizer tokenizer = new StringTokenizer(version, ".");
