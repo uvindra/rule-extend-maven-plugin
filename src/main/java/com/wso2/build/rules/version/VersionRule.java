@@ -1,10 +1,8 @@
 package com.wso2.build.rules.version;
 
-import com.wso2.build.interfaces.rules.ProjectRule;
-import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.settings.Settings;
-import org.codehaus.plexus.component.annotations.Component;
 import java.util.StringTokenizer;
 
 
@@ -13,22 +11,28 @@ import java.util.StringTokenizer;
  */
 
 
-@Component( role = ProjectRule.class, hint = "version" )
-public class VersionRule implements ProjectRule {
+/**
+ * @goal version
+ */
+public class VersionRule extends AbstractMojo {
+
+    /**
+     * The mavenProject currently being build.
+     *
+     * @parameter expression="${project}"
+     * @required
+     * @readonly
+     */
+    private MavenProject mavenProject = null;
 
     @Override
-    public boolean validate(MavenProject mvnProject, MavenSession mvnSession, Settings settings) {
-        String version = mvnProject.getVersion();
+    public void execute() throws MojoExecutionException {
+        String version = mavenProject.getVersion();
 
         StringTokenizer tokenizer = new StringTokenizer(version, ".");
 
-        System.out.println(mvnProject.getArtifactId());
-        System.out.println(version);
-
         if (3 != tokenizer.countTokens()) {
-            return false;
+            throw new MojoExecutionException("version format is invalid");
         }
-
-        return true;
     }
 }

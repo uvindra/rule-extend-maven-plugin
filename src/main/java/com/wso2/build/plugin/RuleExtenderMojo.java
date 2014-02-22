@@ -1,9 +1,7 @@
 package com.wso2.build.plugin;
 
-import com.wso2.build.beans.Parameters;
 import com.wso2.build.interfaces.containers.RuleContainer;
 import com.wso2.build.interfaces.rules.ProjectRule;
-import com.wso2.build.registry.GRegDependencyClient;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -63,6 +61,7 @@ public class RuleExtenderMojo extends AbstractMojo {
     private String gregHome;
 
 
+
     private static final String dependencyProfile = "dependency";
     private static final String registryHomeProperty = "greg.home";
     private static final String moduleEndpointProperty = "greg.module.endpoint";
@@ -77,11 +76,10 @@ public class RuleExtenderMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         System.out.println("RuleExtenderMojo execute start");
 
-        buildArtifacts();
-
         try
         {
             PlexusContainer container = new DefaultPlexusContainer();
+
 
             ruleContainer = container.lookup(RuleContainer.class);
 
@@ -112,30 +110,7 @@ public class RuleExtenderMojo extends AbstractMojo {
     }
 
 
-    public boolean buildArtifacts() {
-        Map<String, Profile> profileMap = settings.getProfilesAsMap();
 
-        Profile profile = profileMap.get(dependencyProfile);
-
-        Properties properties = profile.getProperties();
-
-        Parameters parameters = new Parameters();
-
-        parameters.setGregHome(properties.getProperty(registryHomeProperty));
-        parameters.setGregModuleEndpoint(properties.getProperty(moduleEndpointProperty));
-        parameters.setGregDependencyEndpoint(properties.getProperty(dependencyEndpointProperty));
-        parameters.setGregArtifactEndpoint(properties.getProperty(artifactEndpointProperty));
-        parameters.setGregLifecycleEndpoint(properties.getProperty(lifecycleEndpointProperty));
-        parameters.setGregUsername(properties.getProperty(userNameProperty));
-        parameters.setGregPassword(properties.getProperty(passwordProperty));
-        parameters.setTrustStorePassword(properties.getProperty(trustStorePassword));
-
-        System.out.println("getGregHome : " + parameters.getGregHome());
-
-        GRegDependencyClient client = new GRegDependencyClient(parameters);
-
-        return client.checkDependecies();
-    }
 
 
     private boolean executeRule() {
