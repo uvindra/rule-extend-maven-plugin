@@ -10,6 +10,7 @@ import org.apache.maven.settings.Profile;
 import org.apache.maven.settings.Settings;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,21 +51,39 @@ public class EnforceApprovedDependenciesMojo extends AbstractMojo {
      */
     private Settings settings;
 
+    /**
+     * The settings.xml file in .m2.
+     *
+     * @parameter
+     * @required
+     */
+    private String stateFile = "";
+
     private static final String approvedState = "Approved";
 
     @Override
     public void execute() throws MojoExecutionException {
-        if (true != mavenSession.getExecutionRootDirectory().equalsIgnoreCase(basedir.toString())) {
-            return;
-        }
-
-        BuildDependencyClient client = new BuildDependencyClient();
-
         Map<String, Profile> profileMap = settings.getProfilesAsMap();
 
         Profile profile = profileMap.get("rule");
 
         Properties properties = profile.getProperties();
+
+        String runStatePath = properties.getProperty("run.state.path");
+
+        File directory = new File(runStatePath);
+
+        if (true != directory.exists()) {
+            directory.mkdir();
+        }
+
+        File file = new File(runStatePath + File.separator + stateFile);
+
+        if (true == file.isFile()) {
+            return;
+        }
+
+        BuildDependencyClient client = new BuildDependencyClient();
 
         Parameters parameters = new Parameters();
 
@@ -79,7 +98,7 @@ public class EnforceApprovedDependenciesMojo extends AbstractMojo {
 
         client.loadDependecies(parameters);
 
-        System.out.println("No of Artifacts : " + client.getArtifactsSize());
+        getLog().info("No of Artifacts : " + client.getArtifactsSize());
 
         Iterator it = client.getArtifactIterator();
 
@@ -91,12 +110,21 @@ public class EnforceApprovedDependenciesMojo extends AbstractMojo {
             if (true != approvedState.equalsIgnoreCase(artifact.getState())) {
                 List<String> usedModules = client.getArtifactUsage((String) entry.getKey());
 
-                for (String usedModule : usedModules) {
-                    System.out.println("Module affected : " + usedModule);
-                }
+                getLog().info("");
+                getLog().info("=========================================");
+                getLog().info("Unapproved Artifact : " + entry.getKey());
+                getLog().info("=========================================");
 
-                throw new MojoExecutionException("Artifact : " + entry.getKey() + " is not approved");
+                for (String usedModule : usedModules) {
+                    getLog().info("Module affected : " + usedModule);
+                }
             }
+        }
+
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

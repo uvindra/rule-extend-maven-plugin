@@ -27,7 +27,6 @@ public class BuildDependencyClient {
 
     private Map<String, Artifact> artifactMap = new HashMap<String, Artifact>();
     private HashMap<String, LinkedList<String>> artifactUsageMap = new HashMap<String, LinkedList<String>>();
-    private boolean isLoaded = false;
 
     private static final String groupStartTag = "<group>";
     private static final String groupEndTag = "</group>";
@@ -75,13 +74,7 @@ public class BuildDependencyClient {
             axisFault.printStackTrace();
         }
 
-        long startTime = System.currentTimeMillis();
         String[] artifactIds = getArtifactIDs();
-        long endTime = System.currentTimeMillis();
-
-        System.out.println("getArtifactIds time : " + (endTime - startTime));
-
-        startTime = System.currentTimeMillis();
 
         for (String artifactId : artifactIds) {
             String module = getModule(artifactId);
@@ -98,11 +91,6 @@ public class BuildDependencyClient {
 
             loadModuleDependencyArtifacts(name, version);
         }
-
-        endTime = System.currentTimeMillis();
-        System.out.println("Final time : " + (endTime - startTime));
-
-        isLoaded = true;
     }
 
 
@@ -111,8 +99,6 @@ public class BuildDependencyClient {
     public Artifact searchArtifact(String artifactName) { return  artifactMap.get(artifactName); }
 
     public List<String> getArtifactUsage(String artifactName) { return artifactUsageMap.get(artifactName); }
-
-        public boolean isLoaded() { return isLoaded; }
 
     public Iterator getArtifactIterator() { return artifactMap.entrySet().iterator(); }
 
