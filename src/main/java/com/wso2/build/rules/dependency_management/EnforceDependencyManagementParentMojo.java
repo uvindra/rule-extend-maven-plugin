@@ -38,4 +38,11 @@ public class EnforceDependencyManagementParentMojo extends AbstractMojo {
             throw new MojoExecutionException("Parent pom does not contain dependencyMangement section");
         }
     }
+
+    /**
+     * For injecting a test project to test the Mojo
+     */
+    public void injectTestProject(MavenProject mavenProject) {
+        this.mavenProject = mavenProject;
+    }
 }

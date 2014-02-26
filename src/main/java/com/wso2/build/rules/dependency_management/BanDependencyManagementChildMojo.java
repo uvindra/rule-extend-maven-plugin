@@ -38,4 +38,11 @@ public class BanDependencyManagementChildMojo extends AbstractMojo {
             throw new MojoExecutionException("Child pom contains dependencyManagement section");
         }
     }
+
+    /**
+    * For injecting a test project to test the Mojo
+    */
+    public void injectTestProject(MavenProject mavenProject) {
+        this.mavenProject = mavenProject;
+    }
 }
