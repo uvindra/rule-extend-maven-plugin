@@ -24,13 +24,11 @@ public class EnforceDependencyManagementParentMojoTest {
 
         MavenProject mavenProject = Helper.getTestParentProject(parentURL);
 
-        System.out.println("testDependencyManagementNotInParent 1");
         Assert.assertNotNull(mavenProject);
 
         mojo.injectTestProject(mavenProject);
 
         mojo.execute();
-        System.out.println("testDependencyManagementNotInParent 2");
     }
 
 

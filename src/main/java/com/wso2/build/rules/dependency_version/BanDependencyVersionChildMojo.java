@@ -47,7 +47,6 @@ public class BanDependencyVersionChildMojo extends AbstractMojo {
         List<NodeList> nodeLists = Utility.getChildrenOfParent(mavenProject, dependencyTag);
 
         for (NodeList nodeList : nodeLists) {
-
             boolean isExclude = false;
             boolean isVersionPresent = false;
 
@@ -55,7 +54,7 @@ public class BanDependencyVersionChildMojo extends AbstractMojo {
                 Node node = nodeList.item(i);
 
                 // Carbon group dependencies should be excluded from this check
-                if (true == groupIdTag.equals(node.getNodeName()) && true == carbonGroup.equals(node.getNodeValue())) {
+                if (true == groupIdTag.equals(node.getNodeName()) && true == carbonGroup.equals(node.getTextContent())) {
                     isExclude = true;
                 }
 
@@ -68,5 +67,10 @@ public class BanDependencyVersionChildMojo extends AbstractMojo {
                 throw new MojoExecutionException("Child pom contains version tag in dependency section");
             }
         }
+    }
+
+
+    void injectTestProject(MavenProject mavenProject) {
+        this.mavenProject = mavenProject;
     }
 }
