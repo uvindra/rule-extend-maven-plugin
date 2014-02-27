@@ -1,6 +1,7 @@
 package com.wso2.build.rules.dependency_management;
 
 import com.wso2.build.utils.Utility;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -16,13 +17,14 @@ import org.apache.maven.project.MavenProject;
 public class BanDependencyManagementChildMojo extends AbstractMojo {
 
     /**
-     * The mavenProject currently being build.
+     * The mavenProject currently being built.
      *
      * @parameter expression="${project}"
      * @required
      * @readonly
      */
     private MavenProject mavenProject = null;
+
 
     private static final String dependenciesTag = "dependencies";
     private static final String dependencyManagementTag = "dependencyManagement";
@@ -35,6 +37,7 @@ public class BanDependencyManagementChildMojo extends AbstractMojo {
 
         // This is not a Parent pom and it has a dependencyMangement section
         if (null != parentProject && true == hasDependencyManagementSection) {
+            //getLog().info("pom path : " + mavenProject.getModel().getPomFile().getAbsolutePath());
             throw new MojoExecutionException("Child pom contains dependencyManagement section");
         }
     }

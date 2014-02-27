@@ -1,5 +1,6 @@
 package com.wso2.build.utils;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -115,6 +116,10 @@ public class Utility {
 
             NodeList childNodes = doc.getElementsByTagName(childElement);
 
+            if (0 == childNodes.getLength()) { // Specified child element does not exist
+                return false;
+            }
+
             for (int i = 0; i < childNodes.getLength(); ++i) {
 
                 Node node = childNodes.item(i);
@@ -151,6 +156,10 @@ public class Utility {
             Document doc = dBuilder.parse(pomFile);
 
             NodeList parentNodes = doc.getElementsByTagName(parentElement);
+
+            if (0 == parentNodes.getLength()) { // Specified parent element does not exist
+                return false;
+            }
 
             for (int i = 0; i < parentNodes.getLength(); ++i) {
 
@@ -192,4 +201,5 @@ public class Utility {
 
         return true;
     }
+
 }
