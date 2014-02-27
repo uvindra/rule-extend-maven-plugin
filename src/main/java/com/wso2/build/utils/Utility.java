@@ -202,4 +202,44 @@ public class Utility {
         return true;
     }
 
+
+    public static List<NodeList> getChildrenOfParent(MavenProject mavenProject, String parentElement) {
+        Model model = mavenProject.getModel();
+
+        File pomFile = model.getPomFile();
+
+        List<NodeList> childNodeList = new LinkedList<NodeList>();
+
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(pomFile);
+
+            NodeList parentNodes = doc.getElementsByTagName(parentElement);
+
+            if (0 == parentNodes.getLength()) { // Specified parent element does not exist
+                return childNodeList;
+            }
+
+            for (int i = 0; i < parentNodes.getLength(); ++i) {
+                Node parentNode = parentNodes.item(i);
+
+                if (parentNode.getNodeType() != Node.ELEMENT_NODE) {
+                    continue;
+                }
+
+                NodeList childNodes = parentNode.getChildNodes();
+
+                childNodeList.add(childNodes);
+            }
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return childNodeList;
+    }
 }

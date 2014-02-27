@@ -1,9 +1,14 @@
 package com.wso2.build.rules.dependency_version;
 
 import com.wso2.build.utils.Utility;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.util.List;
 
 
 /**
@@ -28,15 +33,40 @@ public class BanDependencyVersionChildMojo extends AbstractMojo {
     private static final String versionTag = "version";
     private static final String dependencyTag = "dependency";
 
+    private static final String groupIdTag = "groupId";
+    private static final String carbonGroup = "org.wso2.carbon";
+
     @Override
     public void execute() throws MojoExecutionException {
         MavenProject parentProject = mavenProject.getParent();
 
-        boolean isVersionPresent = Utility.hasParentChildElement(mavenProject, dependencyTag, versionTag);
+        if (null == parentProject) {  // Ignore parent projects
+            return;
+        }
 
-        // This is not a Parent pom and it has a version tag present in a dependency section
-        if (null != parentProject && true == isVersionPresent) {
-            throw new MojoExecutionException("Child pom contains version tag in dependency section");
+        List<NodeList> nodeLists = Utility.getChildrenOfParent(mavenProject, dependencyTag);
+
+        for (NodeList nodeList : nodeLists) {
+
+            boolean isExclude = false;
+            boolean isVersionPresent = false;
+
+            for (int i = 0; i < nodeList.getLength(); ++i) {
+                Node node = nodeList.item(i);
+
+                // Carbon group dependencies should be excluded from this check
+                if (true == groupIdTag.equals(node.getNodeName()) && true == carbonGroup.equals(node.getNodeValue())) {
+                    isExclude = true;
+                }
+
+                if (true == versionTag.equals(node.getNodeName())) {
+                    isVersionPresent = true;
+                }
+            }
+
+            if (false == isExclude && true == isVersionPresent) {
+                throw new MojoExecutionException("Child pom contains version tag in dependency section");
+            }
         }
     }
 }
